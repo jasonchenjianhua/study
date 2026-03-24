@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光英雄 - 个人数据版</title>
+    <style>
+        :root { --main: #6C5CE7; --accent: #00CEC9; --bg: #F0F2F5; --danger: #FF7675; }
+        body { font-family: 'PingFang SC', system-ui; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .card { width: 90%; max-width: 450px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .dashboard { background: linear-gradient(135deg, var(--main), #A29BFE); color: white; text-align: center; }
+        .score-val { font-size: 3.5rem; font-weight: bold; display: block; margin: 10px 0; }
+        #timer-display { font-size: 3rem; color: var(--danger); font-weight: bold; margin: 15px 0; text-align: center; }
+        .task-item { display: flex; align-items: center; background: #F9F9F9; margin: 10px 0; padding: 12px; border-radius: 12px; border-left: 5px solid var(--main); }
+        .task-item.done { opacity: 0.5; text-decoration: line-through; border-left-color: #CCC; }
+        .input-group { display: flex; gap: 8px; }
+        input { flex: 1; padding: 12px; border: 2px solid #EEE; border-radius: 10px; }
+        button { cursor: pointer; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold; transition: 0.2s; }
+        .btn-main { background: var(--main); color: white; width: 100%; margin-top: 10px; }
+        .btn-add { background: var(--accent); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="card dashboard">
+        <span>🌟 当前成就积分</span>
+        <span class="score-val" id="score">0</span>
+        <div id="rank">勋章：学徒战士</div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">⏱ 专注计时 (25min)</h3>
+        <div id="timer-display">25:00</div>
+        <button class="btn-main" onclick="toggleTimer()" id="timerBtn">开始计时</button>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">清单 (完成+30分)</h3>
+        <div class="input-group">
+            <input type="text" id="taskInput" placeholder="添加新任务...">
+            <button class="btn-add" onclick="addTask()">添加</button>
+        </div>
+        <div id="taskList"></div>
+        <button onclick="clearDone()" style="background:none; color: #999; font-size: 0.8rem; margin-top: 15px;">清理已完成任务</button>
+    </div>
+
+    <script>
+        let score = parseInt(localStorage.getItem('studyScore')) || 0;
+        let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
+        let timeLeft = 25 * 60;
+        let timer = null;
+
+        function init() {
+            updateUI();
+            renderTasks();
+        }
+
+        function updateUI() {
+            document.getElementById('score').innerText = score;
+            localStorage.setItem('studyScore', score);
+            let r = "学徒战士";
+            if(score >= 200) r = "知识先锋";
+            if(score >= 500) r = "智慧大师";
+            document.getElementById('rank').innerText = "勋章：" + r;
+        }
+
+        function addTask() {
+            const text = document.getElementById('taskInput').value;
+            if(!text) return;
+            tasks.push({ id: Date.now(), text: text, done: false });
+            saveAndRender();
+            document.getElementById('taskInput').value = '';
+        }
+
+        function toggleDone(id) {
+            tasks = tasks.map(t => {
+                if(t.id === id && !t.done) {
+                    t.done = true;
+                    score += 30;
+                    updateUI();
+                }
+                return t;
+            });
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('studyTasks', JSON.stringify(tasks));
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = tasks.map(t => `
+                <div class="task-item ${t.done ? 'done' : ''}">
+                    <input type="checkbox" ${t.done ? 'checked disabled' : ''} onclick="toggleDone(${t.id})">
+                    <span style="margin-left:10px">${t.text}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearDone() {
+            tasks = tasks.filter(t => !t.done);
+            saveAndRender();
+        }
+
+        function toggleTimer() {
+            if(timer) {
+                clearInterval(timer);
+                timer = null;
+                document.getElementById('timerBtn').innerText = "继续计时";
+            } else {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    const m = Math.floor(timeLeft/60), s = timeLeft%60;
+                    document.getElementById('timer-display').innerText = `${m}:${s<10?'0'+s:s}`;
+                    if(timeLeft <= 0) {
+                        clearInterval(timer);
+                        score += 20;
+                        updateUI();
+                        alert("专注完成！积分+20");
+                        timeLeft = 25*60;
+                    }
+                }, 1000);
+                document.getElementById('timerBtn').innerText = "暂停";
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

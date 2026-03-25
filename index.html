@@ -3,128 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>时光英雄 - 个人数据版</title>
+    <title>成长银行 4.1 - 菜单分类版</title>
     <style>
-        :root { --main: #6C5CE7; --accent: #00CEC9; --bg: #F0F2F5; --danger: #FF7675; }
-        body { font-family: 'PingFang SC', system-ui; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .card { width: 90%; max-width: 450px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .dashboard { background: linear-gradient(135deg, var(--main), #A29BFE); color: white; text-align: center; }
-        .score-val { font-size: 3.5rem; font-weight: bold; display: block; margin: 10px 0; }
-        #timer-display { font-size: 3rem; color: var(--danger); font-weight: bold; margin: 15px 0; text-align: center; }
-        .task-item { display: flex; align-items: center; background: #F9F9F9; margin: 10px 0; padding: 12px; border-radius: 12px; border-left: 5px solid var(--main); }
-        .task-item.done { opacity: 0.5; text-decoration: line-through; border-left-color: #CCC; }
-        .input-group { display: flex; gap: 8px; }
-        input { flex: 1; padding: 12px; border: 2px solid #EEE; border-radius: 10px; }
-        button { cursor: pointer; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold; transition: 0.2s; }
-        .btn-main { background: var(--main); color: white; width: 100%; margin-top: 10px; }
-        .btn-add { background: var(--accent); color: white; }
+        :root { --primary: #6C5CE7; --income: #00B894; --expense: #D63031; --bg: #F8F9FA; }
+        body { font-family: 'PingFang SC', system-ui; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        .header { background: linear-gradient(135deg, var(--primary), #A29BFE); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 20px 20px; }
+        .balance { font-size: 2.8rem; font-weight: bold; margin: 8px 0; }
+        .container { padding: 12px; max-width: 500px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; border-left: 4px solid var(--primary); padding-left: 8px; font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        
+        /* 底部菜单 */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; max-width: 500px; left: 50%; transform: translateX(-50%); }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; color: #666; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+
+        /* 按钮布局 */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .action-btn { border: 1px solid #EEE; padding: 12px 10px; border-radius: 8px; background: #FFF; cursor: pointer; text-align: left; transition: 0.2s; }
+        .action-btn:active { background: #F0F0F0; }
+        .action-btn span { display: block; font-size: 0.7rem; color: #999; margin-top: 4px; }
+
+        /* 列表样式 */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F5F5F5; }
+        .val-in { color: var(--income); font-weight: bold; } 
+        .val-out { color: var(--expense); font-weight: bold; }
+        .del-btn { background: #FFEAEA; color: #D63031; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        
+        /* 管理功能样式 */
+        input { border: 1px solid #DDD; border-radius: 6px; padding: 10px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        .task-tag { display: inline-flex; align-items: center; background: #F0F0F0; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; margin: 4px; }
+        .task-tag b { color: var(--expense); margin-left: 6px; cursor: pointer; padding: 0 4px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="card dashboard">
-        <span>🌟 当前成就积分</span>
-        <span class="score-val" id="score">0</span>
-        <div id="rank">勋章：学徒战士</div>
+    <div class="header">
+        <div>💎 当前可用余额 (元)</div>
+        <div class="balance" id="totalBalance">0.00</div>
+        <div id="rank" style="font-size: 0.9rem; opacity: 0.9;">勋章：初级自律者</div>
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">⏱ 专注计时 (25min)</h3>
-        <div id="timer-display">25:00</div>
-        <button class="btn-main" onclick="toggleTimer()" id="timerBtn">开始计时</button>
-    </div>
+    <div class="container">
+        <div id="page-home" class="page">
+            <div class="card">
+                <h3>📖 日常学习打卡</h3>
+                <div class="btn-grid" id="customTaskGrid">
+                    </div>
+            </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">清单 (完成+30分)</h3>
-        <div class="input-group">
-            <input type="text" id="taskInput" placeholder="添加新任务...">
-            <button class="btn-add" onclick="addTask()">添加</button>
+            <div class="card">
+                <h3>📈 进步奖励</h3>
+                <div class="btn-grid">
+                    <button class="action-btn" onclick="confirmIn(50, '单科第一')">单科第一<span>+¥50.00</span></button>
+                    <button class="action-btn" onclick="confirmIn(100, '总分第一')">总分第一<span>+¥100.00</span></button>
+                    <button class="action-btn" onclick="rankUp()">名次提升<span>+¥10/名</span></button>
+                </div>
+            </div>
+
+            <div class="card" style="border: 1px dashed #DDD; background: #FAFAFA;">
+                <h3 style="border:none; font-size: 0.85rem; color: #666;">⚙️ 任务项目管理</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="newTaskName" placeholder="任务名" style="flex:2">
+                    <input type="number" id="newTaskPrice" placeholder="单价" style="flex:1">
+                </div>
+                <button onclick="addNewTask()" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">+ 添加到打卡列表</button>
+                <div id="manageTaskList" style="margin-top:12px;">
+                    </div>
+            </div>
         </div>
-        <div id="taskList"></div>
-        <button onclick="clearDone()" style="background:none; color: #999; font-size: 0.8rem; margin-top: 15px;">清理已完成任务</button>
+
+        <div id="page-expense" class="page hidden">
+            <div class="card">
+                <h3>🛒 消费登记</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="text" id="expName" placeholder="买了个什么？">
+                    <input type="number" id="expAmount" placeholder="花了多少钱？">
+                    <button onclick="spendMoney()" style="background:var(--expense); color:white; border:none; padding:15px; border-radius:8px; font-weight:bold; font-size: 1rem; cursor:pointer;">确认支出扣费</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-list" class="page hidden">
+            <div class="card">
+                <h3>📜 余额来源明细</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
     </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showPage('home')">🏠 收入</div>
+        <div class="nav-item" onclick="showPage('expense')">🛍️ 支出</div>
+        <div class="nav-item" onclick="showPage('list')">📜 账本</div>
+    </nav>
 
     <script>
-        let score = parseInt(localStorage.getItem('studyScore')) || 0;
-        let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
-        let timeLeft = 25 * 60;
-        let timer = null;
+        // --- 1. 数据初始化 ---
+        let balance = parseFloat(localStorage.getItem('bank_balance')) || 0;
+        let logs = JSON.parse(localStorage.getItem('bank_logs')) || [];
+        let myTasks = JSON.parse(localStorage.getItem('bank_tasks')) || [
+            {name: '英语阅读', price: 3},
+            {name: '单词默写', price: 2},
+            {name: '专注打卡', price: 2.5}
+        ];
 
         function init() {
-            updateUI();
             renderTasks();
+            updateUI();
         }
 
+        // --- 2. 核心逻辑 ---
         function updateUI() {
-            document.getElementById('score').innerText = score;
-            localStorage.setItem('studyScore', score);
-            let r = "学徒战士";
-            if(score >= 200) r = "知识先锋";
-            if(score >= 500) r = "智慧大师";
+            document.getElementById('totalBalance').innerText = balance.toFixed(2);
+            localStorage.setItem('bank_balance', balance.toString());
+            localStorage.setItem('bank_logs', JSON.stringify(logs));
+            localStorage.setItem('bank_tasks', JSON.stringify(myTasks));
+            
+            let r = "初级自律者";
+            if(balance > 200) r = "中级理财师";
+            if(balance > 500) r = "高级精英";
             document.getElementById('rank').innerText = "勋章：" + r;
         }
 
-        function addTask() {
-            const text = document.getElementById('taskInput').value;
-            if(!text) return;
-            tasks.push({ id: Date.now(), text: text, done: false });
-            saveAndRender();
-            document.getElementById('taskInput').value = '';
-        }
-
-        function toggleDone(id) {
-            tasks = tasks.map(t => {
-                if(t.id === id && !t.done) {
-                    t.done = true;
-                    score += 30;
-                    updateUI();
-                }
-                return t;
-            });
-            saveAndRender();
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('studyTasks', JSON.stringify(tasks));
-            renderTasks();
-        }
-
         function renderTasks() {
-            const list = document.getElementById('taskList');
-            list.innerHTML = tasks.map(t => `
-                <div class="task-item ${t.done ? 'done' : ''}">
-                    <input type="checkbox" ${t.done ? 'checked disabled' : ''} onclick="toggleDone(${t.id})">
-                    <span style="margin-left:10px">${t.text}</span>
-                </div>
+            const grid = document.getElementById('customTaskGrid');
+            const manage = document.getElementById('manageTaskList');
+            
+            grid.innerHTML = myTasks.map(t => `
+                <button class="action-btn" onclick="confirmIn(${t.price}, '${t.name}')">
+                    ${t.name}<span>+¥${t.price.toFixed(2)}</span>
+                </button>
+            `).join('');
+
+            manage.innerHTML = myTasks.map((t, index) => `
+                <span class="task-tag">${t.name} ¥${t.price}<b onclick="removeTask(${index})">×</b></span>
             `).join('');
         }
 
-        function clearDone() {
-            tasks = tasks.filter(t => !t.done);
-            saveAndRender();
+        function addNewTask() {
+            const name = document.getElementById('newTaskName').value;
+            const price = parseFloat(document.getElementById('newTaskPrice').value);
+            if(!name || isNaN(price)) return alert("请填写任务名和金额");
+            myTasks.push({name, price});
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskPrice').value = '';
+            renderTasks();
+            updateUI();
         }
 
-        function toggleTimer() {
-            if(timer) {
-                clearInterval(timer);
-                timer = null;
-                document.getElementById('timerBtn').innerText = "继续计时";
-            } else {
-                timer = setInterval(() => {
-                    timeLeft--;
-                    const m = Math.floor(timeLeft/60), s = timeLeft%60;
-                    document.getElementById('timer-display').innerText = `${m}:${s<10?'0'+s:s}`;
-                    if(timeLeft <= 0) {
-                        clearInterval(timer);
-                        score += 20;
-                        updateUI();
-                        alert("专注完成！积分+20");
-                        timeLeft = 25*60;
-                    }
-                }, 1000);
-                document.getElementById('timerBtn').innerText = "暂停";
+        function removeTask(index) {
+            if(confirm("确定移除此项吗？")) {
+                myTasks.splice(index, 1);
+                renderTasks();
+                updateUI();
             }
         }
+
+        function confirmIn(amt, desc) {
+            if(confirm(`确定入账 ¥${amt} 吗？`)) {
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+                logs.unshift({id: Date.now(), date: dateStr, desc: desc, amount: amt});
+                balance += amt;
+                updateUI();
+                alert("入账成功！");
+            }
+        }
+
+        function rankUp() {
+            let num = prompt("提升了多少名？");
+            if(num && num > 0) {
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+                const bonus = num * 10;
+                logs.unshift({id: Date.now(), date: dateStr, desc: `名次提升${num}名`, amount: bonus});
+                balance += bonus;
+                updateUI();
+            }
+        }
+
+        function spendMoney() {
+            const name = document.getElementById('expName').value;
+            const amt = parseFloat(document.getElementById('expAmount').value);
+            if(!name || isNaN(amt)) return alert("请填写完整信息");
+            if(amt > balance) return alert("余额不足！");
+            
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+            logs.unshift({id: Date.now(), date: dateStr, desc: `支出：${name}`, amount: -amt});
+            balance -= amt;
+            updateUI();
+            document.getElementById('expName').value = '';
+            document.getElementById('expAmount').value = '';
+            showPage('list');
+        }
+
+        // --- 3. 页面切换 ---
+        function showPage(p) {
+            document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+            document.getElementById('page-' + p).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // 找到点击的菜单并高亮
+            const navItems = document.querySelectorAll('.nav-item');
+            if(p === 'home') navItems[0].classList.add('active');
+            if(p === 'expense') navItems[1].classList.add('active');
+            if(p === 'list') {
+                navItems[2].classList.add('active');
+                renderList();
+            }
+        }
+
+        function renderList() {
+            const listEl = document.getElementById('historyList');
+            listEl.innerHTML = logs.length ? logs.map(l => `
+                <div class="list-item">
+                    <div style="flex:1">
+                        <div style="font-weight:500">${l.desc}</div>
+                        <div style="font-size:0.75rem; color:#999">${l.date}</div>
+                    </div>
+                    <div style="text-align:right">
+                        <span class="${l.amount > 0 ? 'val-in' : 'val-out'}">${l.amount > 0 ? '+' : ''}${l.amount.toFixed(2)}</span>
+                        <button class="del-btn" style="margin-left:10px;" onclick="deleteLog(${l.id})">删除</button>
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align:center; color:#999; margin-top:20px;">暂无历史账单</p>';
+        }
+
+        function deleteLog(id) {
+            if(confirm("删除记录将同时回退余额，确定吗？")) {
+                const idx = logs.findIndex(l => l.id === id);
+                balance -= logs[idx].amount;
+                logs.splice(idx, 1);
+                updateUI();
+                renderList();
+            }
+        }
+
         init();
     </script>
 </body>

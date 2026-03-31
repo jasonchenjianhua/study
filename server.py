@@ -1,4 +1,5 @@
 import json
+import os
 import secrets
 import sqlite3
 from hashlib import pbkdf2_hmac
@@ -480,8 +481,10 @@ class AppHandler(SimpleHTTPRequestHandler):
 
 def main():
     ensure_database()
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), AppHandler)
-    print("Server running at http://127.0.0.1:8000")
+    host = "0.0.0.0"
+    port = int(os.getenv("PORT", "8000"))
+    server = ThreadingHTTPServer((host, port), AppHandler)
+    print(f"Server running at http://{host}:{port}")
     server.serve_forever()
 
 

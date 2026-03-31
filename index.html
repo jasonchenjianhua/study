@@ -1,746 +1,247 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>成长银行 4.1</title>
+    <title>成长银行 4.1 - 菜单分类版</title>
     <style>
-        :root {
-            --primary: #1677d8;
-            --primary-soft: #d8ebff;
-            --income: #00a66f;
-            --expense: #d9485f;
-            --bg: #eef4f8;
-            --panel: #ffffff;
-            --text: #1b2b40;
-            --muted: #6d7b8f;
-            --line: #e1e9f2;
-            --shadow: 0 16px 40px rgba(31, 65, 114, 0.12);
-        }
+        :root { --primary: #6C5CE7; --income: #00B894; --expense: #D63031; --bg: #F8F9FA; }
+        body { font-family: 'PingFang SC', system-ui; background: var(--bg); margin: 0; padding-bottom: 80px; }
+        .header { background: linear-gradient(135deg, var(--primary), #A29BFE); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 20px 20px; }
+        .balance { font-size: 2.8rem; font-weight: bold; margin: 8px 0; }
+        .container { padding: 12px; max-width: 500px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; border-left: 4px solid var(--primary); padding-left: 8px; font-size: 1rem; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        
+        /* 底部菜单 */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; max-width: 500px; left: 50%; transform: translateX(-50%); }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; color: #666; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
 
-        * { box-sizing: border-box; }
+        /* 按钮布局 */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .action-btn { border: 1px solid #EEE; padding: 12px 10px; border-radius: 8px; background: #FFF; cursor: pointer; text-align: left; transition: 0.2s; }
+        .action-btn:active { background: #F0F0F0; }
+        .action-btn span { display: block; font-size: 0.7rem; color: #999; margin-top: 4px; }
 
-        body {
-            margin: 0;
-            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-            background:
-                radial-gradient(circle at top right, rgba(22, 119, 216, 0.14), transparent 26%),
-                linear-gradient(180deg, #f5f9fc 0%, #edf3f8 100%);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        button,
-        input {
-            font: inherit;
-        }
-
-        .shell {
-            width: min(1180px, calc(100% - 24px));
-            margin: 0 auto;
-            padding: 24px 0 40px;
-        }
-
-        .auth-screen {
-            min-height: calc(100vh - 64px);
-            display: grid;
-            grid-template-columns: 1.25fr 420px;
-            gap: 24px;
-            align-items: center;
-        }
-
-        .hero {
-            background: linear-gradient(145deg, #0d4d8a, #1677d8 55%, #7eb8ff);
-            color: #fff;
-            border-radius: 30px;
-            padding: 34px;
-            box-shadow: var(--shadow);
-        }
-
-        .hero h1 {
-            margin: 0 0 14px;
-            font-size: clamp(2.3rem, 4vw, 4rem);
-            line-height: 1.02;
-        }
-
-        .hero p {
-            margin: 0;
-            line-height: 1.8;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 560px;
-        }
-
-        .hero-points {
-            display: grid;
-            gap: 12px;
-            margin-top: 28px;
-        }
-
-        .hero-points div {
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 18px;
-            padding: 14px 16px;
-        }
-
-        .auth-card,
-        .card {
-            background: var(--panel);
-            border-radius: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(225, 233, 242, 0.9);
-        }
-
-        .auth-card {
-            padding: 24px;
-        }
-
-        .tabs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            background: #eef5ff;
-            padding: 6px;
-            border-radius: 16px;
-            margin: 18px 0;
-        }
-
-        .tab-btn {
-            border: none;
-            background: transparent;
-            padding: 10px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .tab-btn.active {
-            background: #fff;
-            box-shadow: 0 6px 14px rgba(22, 119, 216, 0.14);
-        }
-
-        .auth-form,
-        .stack {
-            display: grid;
-            gap: 12px;
-        }
-
-        input {
-            width: 100%;
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 12px 14px;
-            background: #fbfdff;
-        }
-
-        .btn {
-            border: none;
-            border-radius: 14px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-        }
-
-        .btn:hover { transform: translateY(-1px); }
-        .btn:disabled { opacity: 0.65; cursor: wait; transform: none; }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-        }
-
-        .btn-soft {
-            background: #edf4ff;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .btn-expense {
-            background: var(--expense);
-            color: #fff;
-            font-weight: 700;
-        }
-
-        .btn-danger {
-            background: #ffecee;
-            color: var(--expense);
-            font-weight: 700;
-            padding: 8px 10px;
-        }
-
-        .message {
-            min-height: 22px;
-            font-size: 14px;
-            margin-top: 12px;
-        }
-
-        .message.error { color: var(--expense); }
-        .message.success { color: var(--income); }
-
-        .app-screen {
-            display: none;
-        }
-
-        .app-screen.visible {
-            display: block;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #0e5a99, #1677d8 60%, #7fbefe);
-            color: #fff;
-            border-radius: 0 0 26px 26px;
-            padding: 26px 20px 28px;
-            box-shadow: var(--shadow);
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
-        }
-
-        .balance {
-            font-size: clamp(2.5rem, 7vw, 3.8rem);
-            font-weight: 800;
-            margin: 10px 0 6px;
-        }
-
-        .container {
-            padding: 14px 0 90px;
-            max-width: 560px;
-            margin: 0 auto;
-        }
-
-        .card {
-            padding: 16px;
-            margin-bottom: 14px;
-        }
-
-        h3 {
-            margin-top: 0;
-            margin-bottom: 14px;
-            border-left: 4px solid var(--primary);
-            padding-left: 8px;
-            font-size: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .action-btn {
-            border: 1px solid #e7eef6;
-            padding: 12px 10px;
-            border-radius: 12px;
-            background: #fff;
-            cursor: pointer;
-            text-align: left;
-            transition: 0.2s;
-            color: var(--text);
-        }
-
-        .action-btn:active {
-            background: #f1f6fb;
-        }
-
-        .action-btn span {
-            display: block;
-            font-size: 0.74rem;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .inline-form {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .inline-form input:first-child {
-            flex: 2;
-        }
-
-        .inline-form input:last-child {
-            flex: 1;
-        }
-
-        .task-tag {
-            display: inline-flex;
-            align-items: center;
-            background: #f1f5f9;
-            padding: 5px 10px;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            margin: 4px;
-        }
-
-        .task-tag b {
-            color: var(--expense);
-            margin-left: 8px;
-            cursor: pointer;
-            padding: 0 4px;
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f4f7;
-        }
-
-        .val-in {
-            color: var(--income);
-            font-weight: 700;
-        }
-
-        .val-out {
-            color: var(--expense);
-            font-weight: 700;
-        }
-
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            width: min(560px, 100%);
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.98);
-            display: flex;
-            box-shadow: 0 -4px 18px rgba(18, 48, 88, 0.12);
-            z-index: 100;
-            backdrop-filter: blur(12px);
-            border-radius: 18px 18px 0 0;
-        }
-
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            padding: 14px 0;
-            color: var(--muted);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @media (max-width: 900px) {
-            .auth-screen {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* 列表样式 */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F5F5F5; }
+        .val-in { color: var(--income); font-weight: bold; } 
+        .val-out { color: var(--expense); font-weight: bold; }
+        .del-btn { background: #FFEAEA; color: #D63031; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        
+        /* 管理功能样式 */
+        input { border: 1px solid #DDD; border-radius: 6px; padding: 10px; width: 100%; box-sizing: border-box; font-size: 14px; }
+        .task-tag { display: inline-flex; align-items: center; background: #F0F0F0; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; margin: 4px; }
+        .task-tag b { color: var(--expense); margin-left: 6px; cursor: pointer; padding: 0 4px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="shell" id="authScreen">
-        <section class="auth-screen">
-            <div class="hero">
-                <h1>成长银行 4.1</h1>
-                <p>保留你原来的收入、支出、打卡奖励、余额统计、等级成长和账本明细逻辑，只是把数据从浏览器本地存储升级成登录后写入数据库。</p>
-                <div class="hero-points">
-                    <div>登录后按用户隔离数据，每个人看到自己的余额和账单。</div>
-                    <div>任务打卡、消费登记、名次提升奖励都还在。</div>
-                    <div>数据保存在 SQLite，不再依赖 localStorage。</div>
-                </div>
-            </div>
 
-            <div class="auth-card">
-                <h2 style="margin: 0;">账户入口</h2>
-                <div style="color: var(--muted); margin-top: 8px;">先注册再登录，进入你自己的成长银行。</div>
-                <div class="tabs">
-                    <button class="tab-btn active" id="loginTab">登录</button>
-                    <button class="tab-btn" id="registerTab">注册</button>
-                </div>
-                <form class="auth-form" id="authForm">
-                    <input id="username" placeholder="用户名，至少 3 位">
-                    <input id="password" type="password" placeholder="密码，至少 6 位">
-                    <button class="btn btn-primary" id="authSubmit" type="submit">立即登录</button>
-                </form>
-                <div class="message" id="authMessage"></div>
-            </div>
-        </section>
+    <div class="header">
+        <div>💎 当前可用余额 (元)</div>
+        <div class="balance" id="totalBalance">0.00</div>
+        <div id="rank" style="font-size: 0.9rem; opacity: 0.9;">勋章：初级自律者</div>
     </div>
 
-    <div class="app-screen" id="appScreen">
-        <div class="header">
-            <div class="header-top">
-                <div>
-                    <div id="welcomeText">当前用户</div>
-                    <div style="font-size: 0.9rem; opacity: 0.9;">当前可用余额（元）</div>
-                </div>
-                <button class="btn btn-soft" id="logoutBtn">退出登录</button>
+    <div class="container">
+        <div id="page-home" class="page">
+            <div class="card">
+                <h3>📖 日常学习打卡</h3>
+                <div class="btn-grid" id="customTaskGrid">
+                    </div>
             </div>
-            <div class="balance" id="totalBalance">0.00</div>
-            <div id="rank" style="font-size: 0.95rem; opacity: 0.95;">勋章：初级自律者</div>
+
+            <div class="card">
+                <h3>📈 进步奖励</h3>
+                <div class="btn-grid">
+                    <button class="action-btn" onclick="confirmIn(50, '单科第一')">单科第一<span>+¥50.00</span></button>
+                    <button class="action-btn" onclick="confirmIn(100, '总分第一')">总分第一<span>+¥100.00</span></button>
+                    <button class="action-btn" onclick="rankUp()">名次提升<span>+¥10/名</span></button>
+                </div>
+            </div>
+
+            <div class="card" style="border: 1px dashed #DDD; background: #FAFAFA;">
+                <h3 style="border:none; font-size: 0.85rem; color: #666;">⚙️ 任务项目管理</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="newTaskName" placeholder="任务名" style="flex:2">
+                    <input type="number" id="newTaskPrice" placeholder="单价" style="flex:1">
+                </div>
+                <button onclick="addNewTask()" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">+ 添加到打卡列表</button>
+                <div id="manageTaskList" style="margin-top:12px;">
+                    </div>
+            </div>
         </div>
 
-        <div class="container">
-            <div id="page-home" class="page">
-                <div class="card">
-                    <h3>日常学习打卡</h3>
-                    <div class="btn-grid" id="customTaskGrid"></div>
-                </div>
-
-                <div class="card">
-                    <h3>进步奖励</h3>
-                    <div class="btn-grid">
-                        <button class="action-btn" data-income="50" data-desc="单科第一">单科第一<span>+￥50.00</span></button>
-                        <button class="action-btn" data-income="100" data-desc="总分第一">总分第一<span>+￥100.00</span></button>
-                        <button class="action-btn" id="rankUpBtn">名次提升<span>+￥10 / 每名</span></button>
-                    </div>
-                </div>
-
-                <div class="card" style="border: 1px dashed #d7e1eb; background: #f9fbfd;">
-                    <h3 style="border: none; padding-left: 0;">任务项目管理</h3>
-                    <div class="inline-form">
-                        <input type="text" id="newTaskName" placeholder="任务名">
-                        <input type="number" id="newTaskPrice" placeholder="单价">
-                    </div>
-                    <button class="btn btn-primary" id="addTaskBtn" style="width: 100%;">+ 添加到打卡列表</button>
-                    <div id="manageTaskList" style="margin-top: 12px;"></div>
+        <div id="page-expense" class="page hidden">
+            <div class="card">
+                <h3>🛒 消费登记</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <input type="text" id="expName" placeholder="买了个什么？">
+                    <input type="number" id="expAmount" placeholder="花了多少钱？">
+                    <button onclick="spendMoney()" style="background:var(--expense); color:white; border:none; padding:15px; border-radius:8px; font-weight:bold; font-size: 1rem; cursor:pointer;">确认支出扣费</button>
                 </div>
             </div>
-
-            <div id="page-expense" class="page hidden">
-                <div class="card">
-                    <h3>消费登记</h3>
-                    <div class="stack">
-                        <input type="text" id="expName" placeholder="买了什么？">
-                        <input type="number" id="expAmount" placeholder="花了多少钱？">
-                        <button class="btn btn-expense" id="expenseBtn">确认支出扣费</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="page-list" class="page hidden">
-                <div class="card">
-                    <h3>余额来源明细 <button class="btn btn-soft" id="refreshBtn" style="padding: 8px 10px;">刷新</button></h3>
-                    <div id="historyList"></div>
-                </div>
-            </div>
-
-            <div class="message" id="appMessage"></div>
         </div>
 
-        <nav class="nav-bar">
-            <div class="nav-item active" onclick="showPage('home')">收入</div>
-            <div class="nav-item" onclick="showPage('expense')">支出</div>
-            <div class="nav-item" onclick="showPage('list')">账本</div>
-        </nav>
+        <div id="page-list" class="page hidden">
+            <div class="card">
+                <h3>📜 余额来源明细</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
     </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showPage('home')">🏠 收入</div>
+        <div class="nav-item" onclick="showPage('expense')">🛍️ 支出</div>
+        <div class="nav-item" onclick="showPage('list')">📜 账本</div>
+    </nav>
 
     <script>
-        const state = {
-            mode: "login",
-            user: null,
-            balance: 0,
-            logs: [],
-            tasks: []
-        };
+        // --- 1. 数据初始化 ---
+        let balance = parseFloat(localStorage.getItem('bank_balance')) || 0;
+        let logs = JSON.parse(localStorage.getItem('bank_logs')) || [];
+        let myTasks = JSON.parse(localStorage.getItem('bank_tasks')) || [
+            {name: '英语阅读', price: 3},
+            {name: '单词默写', price: 2},
+            {name: '专注打卡', price: 2.5}
+        ];
 
-        const authScreen = document.getElementById("authScreen");
-        const appScreen = document.getElementById("appScreen");
-        const authForm = document.getElementById("authForm");
-        const authSubmit = document.getElementById("authSubmit");
-        const authMessage = document.getElementById("authMessage");
-        const appMessage = document.getElementById("appMessage");
-
-        function setMessage(el, text, type = "") {
-            el.textContent = text;
-            el.className = "message";
-            if (type) el.classList.add(type);
-        }
-
-        async function api(path, options = {}) {
-            const response = await fetch(path, {
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(options.headers || {})
-                },
-                credentials: "same-origin",
-                ...options
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "请求失败");
-            return data;
-        }
-
-        function setMode(mode) {
-            state.mode = mode;
-            document.getElementById("loginTab").classList.toggle("active", mode === "login");
-            document.getElementById("registerTab").classList.toggle("active", mode === "register");
-            authSubmit.textContent = mode === "login" ? "立即登录" : "立即注册";
-            setMessage(authMessage, "");
-        }
-
-        function applyState(nextState) {
-            state.user = nextState.user;
-            state.balance = Number(nextState.user.balance || 0);
-            state.logs = nextState.logs || [];
-            state.tasks = nextState.tasks || [];
-            renderApp();
-        }
-
-        function renderApp() {
-            authScreen.classList.toggle("hidden", Boolean(state.user));
-            appScreen.classList.toggle("visible", Boolean(state.user));
-            if (!state.user) return;
-
-            document.getElementById("welcomeText").textContent = `你好，${state.user.username}`;
-            document.getElementById("totalBalance").textContent = state.balance.toFixed(2);
-            document.getElementById("rank").textContent = `勋章：${state.user.rank}`;
+        function init() {
             renderTasks();
-            renderList();
+            updateUI();
+        }
+
+        // --- 2. 核心逻辑 ---
+        function updateUI() {
+            document.getElementById('totalBalance').innerText = balance.toFixed(2);
+            localStorage.setItem('bank_balance', balance.toString());
+            localStorage.setItem('bank_logs', JSON.stringify(logs));
+            localStorage.setItem('bank_tasks', JSON.stringify(myTasks));
+            
+            let r = "初级自律者";
+            if(balance > 200) r = "中级理财师";
+            if(balance > 500) r = "高级精英";
+            document.getElementById('rank').innerText = "勋章：" + r;
         }
 
         function renderTasks() {
-            const grid = document.getElementById("customTaskGrid");
-            const manage = document.getElementById("manageTaskList");
-
-            grid.innerHTML = state.tasks.map((task) => `
-                <button class="action-btn" data-task-income="${task.price}" data-task-name="${escapeHtml(task.name)}">
-                    ${escapeHtml(task.name)}<span>+￥${Number(task.price).toFixed(2)}</span>
+            const grid = document.getElementById('customTaskGrid');
+            const manage = document.getElementById('manageTaskList');
+            
+            grid.innerHTML = myTasks.map(t => `
+                <button class="action-btn" onclick="confirmIn(${t.price}, '${t.name}')">
+                    ${t.name}<span>+¥${t.price.toFixed(2)}</span>
                 </button>
-            `).join("");
+            `).join('');
 
-            manage.innerHTML = state.tasks.map((task) => `
-                <span class="task-tag">${escapeHtml(task.name)} ￥${Number(task.price).toFixed(2)}<b data-remove-task="${task.id}">×</b></span>
-            `).join("");
+            manage.innerHTML = myTasks.map((t, index) => `
+                <span class="task-tag">${t.name} ¥${t.price}<b onclick="removeTask(${index})">×</b></span>
+            `).join('');
+        }
 
-            grid.querySelectorAll("[data-task-income]").forEach((button) => {
-                button.addEventListener("click", () => confirmIncome(button.dataset.taskIncome, button.dataset.taskName));
-            });
-            manage.querySelectorAll("[data-remove-task]").forEach((button) => {
-                button.addEventListener("click", () => removeTask(button.dataset.removeTask));
-            });
+        function addNewTask() {
+            const name = document.getElementById('newTaskName').value;
+            const price = parseFloat(document.getElementById('newTaskPrice').value);
+            if(!name || isNaN(price)) return alert("请填写任务名和金额");
+            myTasks.push({name, price});
+            document.getElementById('newTaskName').value = '';
+            document.getElementById('newTaskPrice').value = '';
+            renderTasks();
+            updateUI();
+        }
+
+        function removeTask(index) {
+            if(confirm("确定移除此项吗？")) {
+                myTasks.splice(index, 1);
+                renderTasks();
+                updateUI();
+            }
+        }
+
+        function confirmIn(amt, desc) {
+            if(confirm(`确定入账 ¥${amt} 吗？`)) {
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+                logs.unshift({id: Date.now(), date: dateStr, desc: desc, amount: amt});
+                balance += amt;
+                updateUI();
+                alert("入账成功！");
+            }
+        }
+
+        function rankUp() {
+            let num = prompt("提升了多少名？");
+            if(num && num > 0) {
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+                const bonus = num * 10;
+                logs.unshift({id: Date.now(), date: dateStr, desc: `名次提升${num}名`, amount: bonus});
+                balance += bonus;
+                updateUI();
+            }
+        }
+
+        function spendMoney() {
+            const name = document.getElementById('expName').value;
+            const amt = parseFloat(document.getElementById('expAmount').value);
+            if(!name || isNaN(amt)) return alert("请填写完整信息");
+            if(amt > balance) return alert("余额不足！");
+            
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+            logs.unshift({id: Date.now(), date: dateStr, desc: `支出：${name}`, amount: -amt});
+            balance -= amt;
+            updateUI();
+            document.getElementById('expName').value = '';
+            document.getElementById('expAmount').value = '';
+            showPage('list');
+        }
+
+        // --- 3. 页面切换 ---
+        function showPage(p) {
+            document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+            document.getElementById('page-' + p).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // 找到点击的菜单并高亮
+            const navItems = document.querySelectorAll('.nav-item');
+            if(p === 'home') navItems[0].classList.add('active');
+            if(p === 'expense') navItems[1].classList.add('active');
+            if(p === 'list') {
+                navItems[2].classList.add('active');
+                renderList();
+            }
         }
 
         function renderList() {
-            const listEl = document.getElementById("historyList");
-            if (!state.logs.length) {
-                listEl.innerHTML = '<p style="text-align: center; color: #7a8797; margin-top: 20px;">暂无历史账单</p>';
-                return;
-            }
-
-            listEl.innerHTML = state.logs.map((log) => `
+            const listEl = document.getElementById('historyList');
+            listEl.innerHTML = logs.length ? logs.map(l => `
                 <div class="list-item">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">${escapeHtml(log.desc)}</div>
-                        <div style="font-size: 0.78rem; color: #7a8797;">${escapeHtml(log.date)}</div>
+                    <div style="flex:1">
+                        <div style="font-weight:500">${l.desc}</div>
+                        <div style="font-size:0.75rem; color:#999">${l.date}</div>
                     </div>
-                    <div style="text-align: right;">
-                        <span class="${Number(log.amount) > 0 ? "val-in" : "val-out"}">${Number(log.amount) > 0 ? "+" : ""}${Number(log.amount).toFixed(2)}</span>
-                        <button class="btn btn-danger" style="margin-left: 10px;" data-del-log="${log.id}">删除</button>
+                    <div style="text-align:right">
+                        <span class="${l.amount > 0 ? 'val-in' : 'val-out'}">${l.amount > 0 ? '+' : ''}${l.amount.toFixed(2)}</span>
+                        <button class="del-btn" style="margin-left:10px;" onclick="deleteLog(${l.id})">删除</button>
                     </div>
                 </div>
-            `).join("");
-
-            listEl.querySelectorAll("[data-del-log]").forEach((button) => {
-                button.addEventListener("click", () => deleteLog(button.dataset.delLog));
-            });
+            `).join('') : '<p style="text-align:center; color:#999; margin-top:20px;">暂无历史账单</p>';
         }
 
-        function escapeHtml(value) {
-            return String(value)
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#39;");
-        }
-
-        async function refreshState() {
-            const data = await api("/api/app-state");
-            applyState(data.state);
-        }
-
-        async function restoreSession() {
-            try {
-                const data = await api("/api/session");
-                if (data.authenticated) {
-                    applyState(data.state);
-                }
-            } catch (error) {
-                console.error(error);
+        function deleteLog(id) {
+            if(confirm("删除记录将同时回退余额，确定吗？")) {
+                const idx = logs.findIndex(l => l.id === id);
+                balance -= logs[idx].amount;
+                logs.splice(idx, 1);
+                updateUI();
+                renderList();
             }
         }
 
-        async function confirmIncome(amount, desc) {
-            if (!confirm(`确定入账 ￥${Number(amount).toFixed(2)} 吗？`)) return;
-            try {
-                const data = await api("/api/logs/income", {
-                    method: "POST",
-                    body: JSON.stringify({ amount: Number(amount), description: desc })
-                });
-                applyState(data.state);
-                setMessage(appMessage, data.message, "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        async function rankUp() {
-            const num = prompt("提升了多少名？");
-            if (!num) return;
-            try {
-                const data = await api("/api/logs/rank-up", {
-                    method: "POST",
-                    body: JSON.stringify({ steps: Number(num) })
-                });
-                applyState(data.state);
-                setMessage(appMessage, data.message, "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        async function addNewTask() {
-            const name = document.getElementById("newTaskName").value.trim();
-            const price = document.getElementById("newTaskPrice").value;
-            try {
-                const data = await api("/api/tasks", {
-                    method: "POST",
-                    body: JSON.stringify({ name, price })
-                });
-                applyState(data.state);
-                document.getElementById("newTaskName").value = "";
-                document.getElementById("newTaskPrice").value = "";
-                setMessage(appMessage, data.message, "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        async function removeTask(id) {
-            if (!confirm("确定移除这个任务吗？")) return;
-            try {
-                const data = await api(`/api/tasks?id=${id}`, { method: "DELETE" });
-                applyState(data.state);
-                setMessage(appMessage, data.message, "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        async function spendMoney() {
-            const name = document.getElementById("expName").value.trim();
-            const amount = document.getElementById("expAmount").value;
-            try {
-                const data = await api("/api/logs/expense", {
-                    method: "POST",
-                    body: JSON.stringify({ name, amount })
-                });
-                applyState(data.state);
-                document.getElementById("expName").value = "";
-                document.getElementById("expAmount").value = "";
-                setMessage(appMessage, data.message, "success");
-                showPage("list");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        async function deleteLog(id) {
-            if (!confirm("删除记录将同时回滚余额，确定吗？")) return;
-            try {
-                const data = await api(`/api/logs?id=${id}`, { method: "DELETE" });
-                applyState(data.state);
-                setMessage(appMessage, data.message, "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        }
-
-        function showPage(page) {
-            document.querySelectorAll(".page").forEach((el) => el.classList.add("hidden"));
-            document.getElementById(`page-${page}`).classList.remove("hidden");
-            document.querySelectorAll(".nav-item").forEach((el) => el.classList.remove("active"));
-            const navItems = document.querySelectorAll(".nav-item");
-            if (page === "home") navItems[0].classList.add("active");
-            if (page === "expense") navItems[1].classList.add("active");
-            if (page === "list") navItems[2].classList.add("active");
-        }
-
-        document.getElementById("loginTab").addEventListener("click", () => setMode("login"));
-        document.getElementById("registerTab").addEventListener("click", () => setMode("register"));
-        document.getElementById("rankUpBtn").addEventListener("click", rankUp);
-        document.getElementById("addTaskBtn").addEventListener("click", addNewTask);
-        document.getElementById("expenseBtn").addEventListener("click", spendMoney);
-        document.getElementById("refreshBtn").addEventListener("click", async () => {
-            try {
-                await refreshState();
-                setMessage(appMessage, "数据已刷新", "success");
-            } catch (error) {
-                setMessage(appMessage, error.message, "error");
-            }
-        });
-
-        document.querySelectorAll("[data-income]").forEach((button) => {
-            button.addEventListener("click", () => confirmIncome(button.dataset.income, button.dataset.desc));
-        });
-
-        document.getElementById("logoutBtn").addEventListener("click", async () => {
-            try {
-                await api("/api/logout", { method: "POST", body: "{}" });
-            } catch (error) {
-                console.error(error);
-            }
-            state.user = null;
-            state.balance = 0;
-            state.logs = [];
-            state.tasks = [];
-            renderApp();
-            setMode("login");
-            showPage("home");
-        });
-
-        authForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            authSubmit.disabled = true;
-            setMessage(authMessage, "提交中...");
-            const payload = {
-                username: document.getElementById("username").value.trim(),
-                password: document.getElementById("password").value
-            };
-
-            try {
-                const endpoint = state.mode === "login" ? "/api/login" : "/api/register";
-                const data = await api(endpoint, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                applyState(data.state);
-                authForm.reset();
-                setMessage(authMessage, data.message, "success");
-                showPage("home");
-            } catch (error) {
-                setMessage(authMessage, error.message, "error");
-            } finally {
-                authSubmit.disabled = false;
-            }
-        });
-
-        setMode("login");
-        showPage("home");
-        restoreSession();
-        window.showPage = showPage;
+        init();
     </script>
 </body>
 </html>
